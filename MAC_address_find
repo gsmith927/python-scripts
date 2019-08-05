@@ -32,8 +32,8 @@ for HOST in HOST1.values():
 
     cisco1 = {
         "host": HOST,
-        "username": 'garrett',
-        "password": '6969gsweet',
+        "username": 'user',
+        "password": 'password',
         "device_type": 'cisco_ios',
     }
 
