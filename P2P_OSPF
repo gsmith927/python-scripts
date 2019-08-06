@@ -1,0 +1,98 @@
+
+#!/usr/bin/env python
+#import paramiko
+from netmiko import Netmiko
+import netmiko
+import getpass
+import sys, time
+import re
+user = raw_input("Enter your username: ")
+password = getpass.getpass()
+
+
+HOST1 = {
+'r1':'10.0.1.254',
+'r2':'10.0.1.253',
+}
+
+HOST_IP = 'NONE'
+output = ''
+
+
+HOST = HOST1.values()
+
+for HOST in HOST1.values():
+  print('\nHost: ' +  HOST1.keys()[HOST1.values().index(HOST)])
+  name = HOST1.keys()[HOST1.values().index(HOST)]
+#  print(HOST)
+  result = []
+  result = {}
+
+  cisco1 = {
+      "host": HOST,
+      "username": user,
+      "password": password,
+      "device_type": 'cisco_ios',
+  }
+
+
+  try:
+    net_connect = netmiko.ConnectHandler(**cisco1)
+  except:
+    print('unable to connect to ' + HOST)
+    net_connect.disconnect()
+    exit()
+
+#  output = net_connect.send_command_timing('show int des | include up')
+  output = net_connect.send_command_timing('show int des | include P2P')
+
+
+#  print (output)
+  output = output.splitlines()
+#  print(output)
+
+  print('Interface' + '\tStatus' + "/" + 'Protocol' + '\t\tOSPF Cost' + '\tDescription')
+
+
+  for i in output:
+    ospf_cost = "none"
+    STATUS1 = ' '
+    STATUS2 = ' '
+#    DESCRIPTION = ' '
+#    print(i)
+    output2 = re.findall(r'\S+',i)
+#    print(output2)
+    INTERFACE = output2[0]
+    STATUS1 = output2[1]
+    STATUS2 = output2[2]
+#    DESCRIPTION = output2[3]
+
+############333
+    test = net_connect.send_command_timing('show int ' + INTERFACE + ' | include Description')
+    test = test.split(':')
+#    print(test)[1]
+    DESCRIPTION = str(test[1])
+#############
+    if len(DESCRIPTION) == 0:
+      DESCRIPTION = ' '
+
+
+#    print(INTERFACE)
+
+    output_ospf = net_connect.send_command_timing('show ip ospf int brie | include ' + INTERFACE)
+    if len(output_ospf) != 0:
+#      print(output_ospf)
+      ospf_cost = re.findall(r'\S+',output_ospf)[4]
+#      print(ospf_cost)
+
+    print(INTERFACE +'\t\t ' + STATUS1 + "/" + STATUS2 + '\t\t\t ' + ospf_cost +'\t\t ' + DESCRIPTION[:20])
+
+###    result[INTERFACE] = [STATUS1,STATUS2,DESCRIPTION,ospf_cost]
+
+
+#    print(result)
+#  print(result)
+  net_connect.disconnect()
+
+
+exit()
