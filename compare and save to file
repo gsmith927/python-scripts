@@ -1,0 +1,26 @@
+#import sys
+
+#orig_stdout = sys.stdout
+f = open('out.txt', 'w')
+#sys.stdout = f
+
+
+# Python code t get difference of two lists 
+# Using set() 
+def Diff(li1, li2): 
+  return (list(set(li1) - set(li2))) 
+  
+# Driver Code 
+li1 = ['jamie',3,4, 40,'apple'] 
+li2 = ['jamie', 40, 35] 
+output = (Diff(li1, li2)) 
+
+if len(output) != 0: 
+  print >>f, ('\n'.join(map(str, output))) 
+
+else:
+  print >>f, ('All good') 
+
+
+#sys.stdout = orig_stdout
+#f.close()
