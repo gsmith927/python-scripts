@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+#import paramiko
+from netmiko import Netmiko
+import netmiko
+import getpass
+import sys, time
+import re
+#user = raw_input("Enter your username: ")
+#password = getpass.getpass()
+ip_address = raw_input("What IP: ")
+
+user = 'user'
+password = 'password'
+
+output2 = {} 
+HOST1 = {
+'r1':'10.0.1.254',
+#'r2':'10.0.1.253',
+}
+
+HOST_IP = 'NONE'
+output = ''
+lastip = 'none'
+
+HOST = HOST1.values()
+
+for HOST in HOST1.values():
+#  print('\nHost: ' +  HOST1.keys()[HOST1.values().index(HOST)])
+  name = HOST1.keys()[HOST1.values().index(HOST)]
+#  print(HOST)
+  result = []
+  result = {}
+
+  cisco1 = {
+      "host": HOST,
+      "username": user,
+      "password": password,
+      "device_type": 'cisco_ios',
+  }
+
+
+  try:
+    net_connect = netmiko.ConnectHandler(**cisco1)
+  except:
+    print('unable to connect to ' + HOST)
+    net_connect.disconnect()
+    exit()
+
+  pingable = net_connect.send_command_timing('ping ' + ip_address  + ' repeat 2')
+  pingable = re.findall(r'!',pingable)
+  if len(pingable) > 0:
+    pingable = pingable[-1]
+
+  if pingable == '!':
+#    print('pingable')
+    cmd = 'traceroute ' + ip_address + ' timeout 1 '
+    output = net_connect.send_command(cmd)[63:]
+#    print(output)
+    output2 = output.split('\n')
+#    print(output2)
+ #   output = output.split('\n')
+    for i in output2:
+      list = re.findall(r'\S+',i)
+#      print (list)
+
+      word = list[0]
+      if len(word) <= 2:
+        word = list[1]
+      if len(word) > 0:
+#        print (word)
+        if word != ip_address and word != '*':
+          lastip = word
+          print(lastip)
+        else:
+          print('nope')
+  else:
+    print('not pingable')
+  print('last ip is : ' + lastip)
+  net_connect.disconnect()
